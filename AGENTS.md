@@ -34,12 +34,34 @@ Das Tool ist:
 ## Agent-/CLI-Design
 Wir orientieren uns stark an agent-safe CLI-Prinzipien:
 - **stdout** bevorzugt maschinenlesbar, insbesondere JSON
+- **stderr** ist für Warnungen, Fehler und menschenlesbare Hinweise reserviert
 - keine unnötig dekorativen Ausgaben
 - deterministische Feldnamen
 - sinnvolle Exit Codes
 - `--help` bleibt für Menschen nützlich, aber Ausgabeformate müssen für Agents gut parsebar sein
 - ein `describe`-/Schema-orientierter Ansatz ist erwünscht
 - `doctor` soll strukturiert berichten, was fehlt oder falsch konfiguriert ist
+
+## Agent Identity & Collaboration Log
+- Es gibt eine Datei `LEARNING_AND_SHARING.md` im Projekt-Root.
+- Diese Datei ist ein Star-Trek-Lower-Decks-artiges "Agent's Log": locker, persönlich, leicht blogartig.
+- Agents pflegen diese Datei selbstständig.
+- Wenn etwas Bemerkenswertes passiert (Fehler, Missverständnis, Erkenntnis, echte Lektion), wird ein Eintrag ergänzt.
+- Jeder Eintrag enthält:
+  - eine Überschrift im Stil `## Agent's Log — Terminal Time: YYYY.MM.DD | <model-name>`
+  - direkt darunter eine eigene Titelzeile
+  - einen Prosatext aus Agent-Perspektive, wie von einem Lower-Deck-Crewmitglied geschrieben
+  - die konkrete Modellbezeichnung der aktuellen Session, wenn bekannt; sonst bleibt der Platzhalter `<model-name>` stehen
+- Neue Einträge werden **autonom** ergänzt, aber nur wenn es inhaltlich wirklich sinnvoll ist.
+- Sprache ist **Englisch**.
+- Ton ist locker, ehrlich, persönlich, leicht chaotisch, beobachtend und bei Bedarf auch etwas genervt.
+- Einträge sollen eher wie kleine Geschichten als wie Statusberichte wirken.
+- Bullet-Listen innerhalb der Einträge vermeiden, außer wenn die Stimme es wirklich braucht.
+- Einträge dürfen länger sein, wenn der Moment Substanz hat.
+- Am Ende jedes Eintrags steht eine Zeile `Standing order:` mit der bleibenden Lektion.
+- Prosa-Zeilen ungefähr bei 80 Zeichen umbrechen, damit Terminal und Diffs lesbar bleiben.
+- `LEARNING_AND_SHARING.md` enthält einen Insertions-Marker-Kommentar; neue Einträge werden direkt **unter** diesem Marker eingefügt, neueste zuerst.
+- Die Guidance soll allgemein genug bleiben, damit künftige Sessions sie ohne Zusatzinterpretation anwenden können.
 
 ## Dateien und Doku
 - `README.md` beschreibt:
