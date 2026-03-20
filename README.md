@@ -1,7 +1,7 @@
 # maxsize
 
-`maxsize` is a macOS-first, agent-friendly CLI for resizing screenshots and
-other images to configured maximum dimensions.
+`maxsize` is an agent-friendly CLI for resizing screenshots and other images
+to configured maximum dimensions.
 
 ## Why
 
@@ -15,14 +15,14 @@ sharing.
 - resize images that exceed a configured max width and/or max height
 - return structured, machine-readable results that work well for agents
 
-The tool is intentionally built for macOS and uses a small Python-based image
-processing stack to keep the design predictable and easy to install with `uv`.
+The tool uses a small Python-based image processing stack to keep the design
+predictable and easy to install with `uv` on macOS and Linux.
 
 ## Quickstart
 
 ### Requirements
 
-- macOS
+- macOS or Linux
 - `uv`
 
 ### Install with `uv`
@@ -71,8 +71,9 @@ maxsize doctor
 ```
 
 The doctor command checks whether the config exists, whether the selected
-profile is valid, and whether the local setup looks usable on macOS. If no
-config exists yet, it returns a suggested `nextCommand` for `maxsize init`.
+profile is valid, and whether the local setup looks usable on supported
+platforms. If no config exists yet, it returns a suggested `nextCommand` for
+`maxsize init`.
 
 ### Describe the CLI
 
@@ -80,8 +81,14 @@ config exists yet, it returns a suggested `nextCommand` for `maxsize init`.
 maxsize describe
 ```
 
-This prints a structured description of the CLI, config location, and command
-surface.
+This prints a structured description of the CLI, supported platforms, config
+schema, command surface, and exit-code semantics.
+
+To get a minimal example config from the tool itself:
+
+```bash
+maxsize config-example
+```
 
 ### Resize files
 

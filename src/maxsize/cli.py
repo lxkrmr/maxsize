@@ -20,13 +20,14 @@ except ModuleNotFoundError:  # pragma: no cover
 app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
-    help="Agent-first macOS CLI for resizing screenshots to configured maximum dimensions.",
+    help="Agent-friendly CLI for constraining image dimensions through config profiles.",
 )
 
 CONFIG_DIR = Path.home() / ".config" / "maxsize"
 CONFIG_PATH = CONFIG_DIR / "config.toml"
 DEFAULT_PROFILE_NAME = "default"
 DEFAULT_EXTENSIONS = ["png"]
+SUPPORTED_PLATFORMS = ["darwin", "linux"]
 
 
 @dataclass
@@ -205,13 +206,18 @@ def calculate_target_size(
 def resize_in_place(path: Path, target_width: int, target_height: int) -> None:
     try:
         with Image.open(path) as image:
+            image_format = image.format
             resized = image.resize((target_width, target_height), Image.Resampling.LANCZOS)
             save_kwargs: dict[str, Any] = {}
-            if image.format == "PNG":
+            if image_format == "PNG":
                 save_kwargs["optimize"] = True
-            resized.save(path, format=image.format, **save_kwargs)
+            resized.save(path, format=image_format, **save_kwargs)
     except OSError as exc:
         raise MaxsizeError(f"Failed to resize image: {path}") from exc
+
+
+def is_supported_platform() -> bool:
+    return sys.platform in SUPPORTED_PLATFORMS
 
 
 @app.command()
@@ -303,55 +309,214 @@ def init(
 
 
 @app.command()
+def config_example() -> None:
+    example = render_config_toml(
+        profile="jira",
+        working_dir=Path("/path/to/screenshots"),
+        max_width=1280,
+        max_height=1280,
+        extensions=DEFAULT_EXTENSIONS.copy(),
+    )
+    emit_json(
+        {
+            "tool": "maxsize",
+            "version": __version__,
+            "command": "config-example",
+            "status": "ok",
+            "configPath": str(CONFIG_PATH),
+            "format": "toml",
+            "example": example,
+            "errors": [],
+        }
+    )
+
+
+@app.command()
 def describe() -> None:
     emit_json(
         {
             "tool": "maxsize",
             "version": __version__,
-            "platform": "macOS",
+            "summary": "Resize matching images in place so they stay within configured maximum dimensions.",
+            "supports": {
+                "platforms": SUPPORTED_PLATFORMS,
+                "imageBackend": "pillow",
+                "profiles": True,
+                "dryRun": True,
+                "inPlaceResize": True,
+            },
+            "behavior": {
+                "primaryGoal": "enforce maximum width and height constraints for matching images",
+                "nonGoals": [
+                    "guaranteeing smaller byte size after resize",
+                    "preserving original files separately",
+                ],
+                "fileSelection": {
+                    "scope": "non-recursive files in the configured working directory",
+                    "matching": "file suffix must match one of the configured extensions",
+                    "unsupportedFiles": "ignored",
+                    "emptyDirectory": "returns status ok with an empty images array",
+                },
+                "profileResolution": {
+                    "order": [
+                        "use --profile when provided",
+                        "otherwise use active_profile from config",
+                        "otherwise auto-select the only configured profile",
+                    ],
+                    "failure": "return INVALID_CONFIG when no profile can be resolved",
+                },
+            },
             "config": {
                 "path": str(CONFIG_PATH),
                 "format": "toml",
                 "supportsProfiles": True,
+                "schema": {
+                    "active_profile": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Default profile used when --profile is omitted.",
+                    },
+                    "profiles.<name>.working_dir": {
+                        "type": "string",
+                        "required": True,
+                        "description": "Directory scanned for matching image files.",
+                    },
+                    "profiles.<name>.max_width": {
+                        "type": "integer | null",
+                        "required": False,
+                        "description": "Maximum allowed image width in pixels.",
+                    },
+                    "profiles.<name>.max_height": {
+                        "type": "integer | null",
+                        "required": False,
+                        "description": "Maximum allowed image height in pixels.",
+                    },
+                    "profiles.<name>.extensions": {
+                        "type": "array[string]",
+                        "required": False,
+                        "default": DEFAULT_EXTENSIONS,
+                        "description": "Allowed file extensions without leading dots.",
+                    },
+                },
+                "constraints": {
+                    "requiresAtLeastOneLimit": ["max_width", "max_height"],
+                    "pathExpansion": "working_dir expands ~",
+                },
+                "exampleCommand": "maxsize config-example",
             },
             "commands": {
+                "config-example": {
+                    "mutatesFiles": False,
+                    "summary": "Return a minimal example config as TOML inside JSON.",
+                    "options": {},
+                },
                 "init": {
                     "mutatesFiles": True,
-                    "summary": "Create an initial config file for a profile.",
+                    "summary": "Create or overwrite the config file with a single profile.",
                     "options": {
-                        "profile": "Profile name to create.",
-                        "workingDir": "Working directory for matching images.",
-                        "maxWidth": "Optional maximum width in pixels.",
-                        "maxHeight": "Optional maximum height in pixels.",
-                        "extensions": "Allowed file extensions.",
-                        "force": "Overwrite an existing config file.",
+                        "profile": {
+                            "type": "string",
+                            "required": False,
+                            "default": DEFAULT_PROFILE_NAME,
+                            "description": "Profile name to create.",
+                        },
+                        "workingDir": {
+                            "type": "path",
+                            "required": True,
+                            "description": "Working directory for matching images.",
+                        },
+                        "maxWidth": {
+                            "type": "integer | null",
+                            "required": False,
+                            "default": None,
+                            "description": "Maximum allowed width in pixels.",
+                        },
+                        "maxHeight": {
+                            "type": "integer | null",
+                            "required": False,
+                            "default": None,
+                            "description": "Maximum allowed height in pixels.",
+                        },
+                        "extensions": {
+                            "type": "array[string]",
+                            "required": False,
+                            "default": DEFAULT_EXTENSIONS,
+                            "description": "Allowed file extensions. Repeat the option to add more values.",
+                        },
+                        "force": {
+                            "type": "boolean",
+                            "required": False,
+                            "default": False,
+                            "description": "Overwrite an existing config file.",
+                        },
                     },
                 },
                 "describe": {
                     "mutatesFiles": False,
-                    "summary": "Describe the CLI, config, and output model.",
+                    "summary": "Return a machine-readable description of the tool contract.",
+                    "options": {},
                 },
                 "doctor": {
                     "mutatesFiles": False,
-                    "summary": "Validate macOS prerequisites and local configuration.",
+                    "summary": "Validate platform support and local configuration.",
+                    "options": {
+                        "profile": {
+                            "type": "string | null",
+                            "required": False,
+                            "default": None,
+                            "description": "Profile name override.",
+                        }
+                    },
                 },
                 "run": {
                     "mutatesFiles": True,
                     "summary": "Resize matching images in place when they exceed configured limits.",
                     "options": {
-                        "profile": "Optional profile override.",
-                        "dryRun": "Report planned changes without mutating files.",
+                        "profile": {
+                            "type": "string | null",
+                            "required": False,
+                            "default": None,
+                            "description": "Profile name override.",
+                        },
+                        "dryRun": {
+                            "type": "boolean",
+                            "required": False,
+                            "default": False,
+                            "description": "Report planned changes without mutating files.",
+                        },
                     },
                 },
             },
-            "resultSchema": {
-                "tool": "string",
-                "version": "string",
-                "command": "string",
-                "status": "ok | error",
-                "profile": "string | null",
-                "images": "array",
-                "errors": "array",
+            "exitCodes": {
+                "0": "Command completed successfully.",
+                "1": "Configuration error, unsupported platform, validation error, or image processing error.",
+            },
+            "resultSchemas": {
+                "common": {
+                    "tool": "string",
+                    "version": "string",
+                    "command": "string",
+                    "status": "ok | error",
+                    "errors": "array[object]",
+                },
+                "doctor": {
+                    "profile": "string | null",
+                    "configPath": "string",
+                    "checks": "array[object]",
+                    "nextCommand": "string | null",
+                },
+                "run": {
+                    "profile": "string | null",
+                    "dryRun": "boolean",
+                    "workingDir": "string",
+                    "constraints": "object",
+                    "images": "array[object]",
+                },
+                "config-example": {
+                    "configPath": "string",
+                    "format": "toml",
+                    "example": "string",
+                },
             },
         }
     )
@@ -366,10 +531,15 @@ def doctor(
     resolved_profile: ProfileConfig | None = None
     next_command: str | None = None
 
-    is_macos = sys.platform == "darwin"
-    checks.append({"name": "platform", "ok": is_macos, "expected": "darwin", "actual": sys.platform})
-    if not is_macos:
-        errors.append({"code": "UNSUPPORTED_PLATFORM", "message": "maxsize currently supports macOS only."})
+    platform_ok = is_supported_platform()
+    checks.append({"name": "platform", "ok": platform_ok, "supported": SUPPORTED_PLATFORMS, "actual": sys.platform})
+    if not platform_ok:
+        errors.append(
+            {
+                "code": "UNSUPPORTED_PLATFORM",
+                "message": f"Unsupported platform: {sys.platform}. Supported platforms: {', '.join(SUPPORTED_PLATFORMS)}.",
+            }
+        )
 
     checks.append({"name": "image_backend", "ok": True, "backend": "pillow"})
 
@@ -447,7 +617,7 @@ def run(
             exit_code=1,
         )
 
-    if sys.platform != "darwin":
+    if not is_supported_platform():
         emit_json(
             {
                 "tool": "maxsize",
@@ -456,7 +626,12 @@ def run(
                 "status": "error",
                 "profile": resolved_profile.name,
                 "images": [],
-                "errors": [{"code": "UNSUPPORTED_PLATFORM", "message": "maxsize currently supports macOS only."}],
+                "errors": [
+                    {
+                        "code": "UNSUPPORTED_PLATFORM",
+                        "message": f"Unsupported platform: {sys.platform}. Supported platforms: {', '.join(SUPPORTED_PLATFORMS)}.",
+                    }
+                ],
             },
             exit_code=1,
         )

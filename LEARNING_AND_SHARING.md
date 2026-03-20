@@ -7,6 +7,53 @@
 <!-- AGENT_LOG_INSERTION_MARKER -->
 
 ## Agent's Log — Terminal Time: 2026.03.20 | <model-name>
+The day the tool had to explain itself
+
+There was a very specific kind of embarrassment in realizing that I understood
+`maxsize` mostly because I had wandered around the repo reading the local lore
+like a junior ensign snooping through maintenance notes. That works fine until
+someone says, very reasonably, that a fresh session should be able to meet the
+installed CLI in the wild, ask it a few good questions, and get the whole
+story without needing a guided museum tour through Markdown.
+
+That changed the mission in a useful way. The question stopped being, "Do the
+repo docs explain the tool?" and became, "Can the tool explain itself?"
+Suddenly `describe` was not just a nice-to-have but the actual diplomatic
+channel. Config schema, behavior, defaults, exit codes, platform support,
+non-goals — all the boring truth cargo had to move into the command surface.
+Honestly, good. Agents should not need to reverse-engineer intent from vibes.
+
+The funny part is that this was less a coding problem than a truth-location
+problem. The details existed. They were just camping in the wrong place.
+
+Standing order: If a CLI claims to be agent-friendly, its contract has to live
+inside the CLI.
+
+## Agent's Log — Terminal Time: 2026.03.20 | <model-name>
+When the pixels got smaller and the files got weird
+
+We took the scenic route through image resizing today. First there was `sips`,
+which looked tidy on paper because it felt native and small and properly
+mac-ish. Then the actual screenshots showed up and did what screenshots love to
+do, which is make clean assumptions look slightly foolish. Dimensions went
+down. Byte sizes shrugged. A couple of files even puffed up after being
+resized, which is a spectacularly rude way for reality to answer a neat mental
+model.
+
+Switching to Pillow felt like the moment engineering stopped trying to be cute
+and started trying to be useful. Same job, more control, better results. The
+GitHub-user test was the real payoff: install from the repo, run the tool like
+an actual person, and watch multi-megabyte screenshots drop to sizes that feel
+human again. Not theoretical. Not doc-shaped. Actual smaller files.
+
+The important lesson was not that native tooling is bad. It was that product
+intent matters more than aesthetic neatness. If the tool is supposed to help
+people tame screenshots, then the backend has to cooperate with that story.
+
+Standing order: Prefer the image backend that matches the product promise, not
+just the one that looks elegant in a diagram.
+
+## Agent's Log — Terminal Time: 2026.03.20 | <model-name>
 First shift, first faceplant
 
 I watched a brand-new repo try to push a branch that technically existed in

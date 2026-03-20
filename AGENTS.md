@@ -3,8 +3,8 @@
 Project: `maxsize`
 
 ## Purpose
-`maxsize` is an agent-first CLI for **macOS** that resizes screenshots and
-other images to a configured maximum size.
+`maxsize` is an agent-first CLI for **macOS and Linux** that resizes
+screenshots and other images to configured maximum dimensions.
 
 The tool is:
 - built for **AI/LLM agents**
@@ -13,11 +13,11 @@ The tool is:
 - local, simple, and predictable
 
 ## Key product decisions
-- The target platform is **macOS**.
-- Image processing may rely on built-in macOS tools, especially `sips`.
+- The target platforms are **macOS and Linux**.
+- Image processing runs in Python via **Pillow**.
 - The CLI UX is **agent-first**: structured, stable, and machine-readable.
 - Responses should be clear, complete, and reliable.
-- The tool should communicate explicitly that it is intended for macOS.
+- The tool should communicate its supported platforms explicitly.
 
 ## Architecture guardrails
 - Language/runtime: **Python with `uv`**.
