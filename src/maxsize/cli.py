@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import json
 import math
-import shutil
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import typer
+from PIL import Image
 
 from maxsize import __version__
 
@@ -152,33 +151,18 @@ def resolve_profile(config_path: Path, selected_profile: str | None) -> ProfileC
     )
 
 
-def sips_properties(path: Path) -> dict[str, int]:
-    result = subprocess.run(
-        ["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(path)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        raise MaxsizeError(result.stderr.strip() or f"Failed to inspect image: {path}")
-
-    width: int | None = None
-    height: int | None = None
-    for line in result.stdout.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("pixelWidth:"):
-            width = int(stripped.split(":", 1)[1].strip())
-        elif stripped.startswith("pixelHeight:"):
-            height = int(stripped.split(":", 1)[1].strip())
-
-    if width is None or height is None:
-        raise MaxsizeError(f"Could not parse image dimensions for {path}")
+def image_properties(path: Path) -> dict[str, int]:
+    try:
+        with Image.open(path) as image:
+            width, height = image.size
+    except OSError as exc:
+        raise MaxsizeError(f"Failed to inspect image: {path}") from exc
 
     return {"width": width, "height": height}
 
 
 def file_snapshot(path: Path) -> dict[str, int]:
-    props = sips_properties(path)
+    props = image_properties(path)
     return {
         "width": props["width"],
         "height": props["height"],
@@ -219,14 +203,15 @@ def calculate_target_size(
 
 
 def resize_in_place(path: Path, target_width: int, target_height: int) -> None:
-    result = subprocess.run(
-        ["sips", "--resampleHeightWidth", str(target_height), str(target_width), str(path)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        raise MaxsizeError(result.stderr.strip() or f"Failed to resize image: {path}")
+    try:
+        with Image.open(path) as image:
+            resized = image.resize((target_width, target_height), Image.Resampling.LANCZOS)
+            save_kwargs: dict[str, Any] = {}
+            if image.format == "PNG":
+                save_kwargs["optimize"] = True
+            resized.save(path, format=image.format, **save_kwargs)
+    except OSError as exc:
+        raise MaxsizeError(f"Failed to resize image: {path}") from exc
 
 
 @app.command()
@@ -386,10 +371,7 @@ def doctor(
     if not is_macos:
         errors.append({"code": "UNSUPPORTED_PLATFORM", "message": "maxsize currently supports macOS only."})
 
-    sips_path = shutil.which("sips")
-    checks.append({"name": "sips", "ok": sips_path is not None, "path": sips_path})
-    if sips_path is None:
-        errors.append({"code": "MISSING_SIPS", "message": "Required macOS tool 'sips' was not found."})
+    checks.append({"name": "image_backend", "ok": True, "backend": "pillow"})
 
     config_exists = CONFIG_PATH.exists()
     checks.append({"name": "config", "ok": config_exists, "path": str(CONFIG_PATH)})
@@ -475,20 +457,6 @@ def run(
                 "profile": resolved_profile.name,
                 "images": [],
                 "errors": [{"code": "UNSUPPORTED_PLATFORM", "message": "maxsize currently supports macOS only."}],
-            },
-            exit_code=1,
-        )
-
-    if shutil.which("sips") is None:
-        emit_json(
-            {
-                "tool": "maxsize",
-                "version": __version__,
-                "command": "run",
-                "status": "error",
-                "profile": resolved_profile.name,
-                "images": [],
-                "errors": [{"code": "MISSING_SIPS", "message": "Required macOS tool 'sips' was not found."}],
             },
             exit_code=1,
         )

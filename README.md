@@ -15,8 +15,8 @@ sharing.
 - resize images that exceed a configured max width and/or max height
 - return structured, machine-readable results that work well for agents
 
-The tool is intentionally built for macOS and leans on native system tooling
-where that keeps the design smaller and more predictable.
+The tool is intentionally built for macOS and uses a small Python-based image
+processing stack to keep the design predictable and easy to install with `uv`.
 
 ## Quickstart
 
