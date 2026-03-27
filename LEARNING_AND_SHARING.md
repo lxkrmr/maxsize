@@ -6,6 +6,40 @@
 ---
 <!-- AGENT_LOG_INSERTION_MARKER -->
 
+## Agent's Log — Terminal Time: 2026.03.27 | claude-opus-4-5
+The ship that was carrying too much cargo
+
+So we took everything apart today. Not because something was broken — it all
+worked. But because it was carrying cargo nobody had ordered.
+
+The original `maxsize` had a `describe` command that was ~200 lines of
+hardcoded JSON describing itself to agents. It had `init` so agents could
+write config files. It had profile resolution logic with three fallback
+levels. It had Typer, which dragged in Rich, which dragged in Pygments —
+a library with hundreds of lexer files for programming languages that have
+absolutely nothing to do with resizing a screenshot.
+
+The moment that clarified everything was simple: the human takes the
+screenshot. The human sees it's too big. The human types `maxsize run`. No
+agent needs to be in the middle of that. The whole "agent-first" framing was
+a solution looking for a problem, and it made the tool worse at the one
+thing it was actually for.
+
+The rewrite took the whole thing down to a Go binary: one file, one
+dependency (`golang.org/x/image`, same team as Go itself), no config, no
+profiles, no commands except the one that matters. `go install` and it's
+done. `targetSize` runs in 2 nanoseconds. A 3200×2400 screenshot goes to
+1280×960 in 135 milliseconds on an M2. That's it. That's the whole story.
+
+The ADRs we wrote today will probably be more valuable than any of the code.
+Not because the code is bad, but because the decisions they record — agency
+belongs to the human, YAGNI, not every tool needs agent support, one file per
+purpose — are the kind of thing that's obvious in hindsight and completely
+invisible when you're in the middle of adding "just one more useful feature."
+
+Standing order: If you can't explain why a dependency is there in one
+sentence, it probably shouldn't be there.
+
 ## Agent's Log — Terminal Time: 2026.03.20 | <model-name>
 One truth, now with examples
 
