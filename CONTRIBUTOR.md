@@ -13,12 +13,14 @@ Format:
 Examples:
 
 ```text
-feat(cli): add doctor command
-feat(config): support profile selection
-fix(resize): skip images already within bounds
-docs(readme): clarify uv installation
-refactor(output): normalize json result schema
-test(doctor): cover missing config handling
+feat(cli): add --max-width flag
+fix(resize): preserve aspect ratio when only one limit is set
+docs(readme): add shell alias example
+refactor(resize): extract targetSize function
+test(resize): add table-driven tests for targetSize
+chore(deps): upgrade golang.org/x/image
+build(go): add go.mod and go.sum
+docs(adr): add decision record for Go rewrite
 ```
 
 ## Commit style

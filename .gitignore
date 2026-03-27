@@ -1,6 +1,9 @@
-__pycache__/
-*.pyc
-.venv/
-.dist/
-dist/
-build/
+# build output
+maxsize
+
+# Go test cache and coverage
+*.test
+*.out
+
+# macOS
+.DS_Store
