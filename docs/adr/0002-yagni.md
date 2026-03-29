@@ -5,7 +5,7 @@
 
 ## Context
 
-`maxsize` is a simple tool: take images, shrink them if they are too large,
+`shrink` is a simple tool: take images, shrink them if they are too large,
 report what happened. That is the whole job.
 
 During early development, the project accumulated things that were not strictly

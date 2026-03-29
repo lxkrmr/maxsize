@@ -1,5 +1,5 @@
 # build output
-maxsize
+shrink
 
 # Go test cache and coverage
 *.test

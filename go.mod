@@ -1,4 +1,4 @@
-module github.com/lxkrmr/maxsize
+module github.com/lxkrmr/shrink
 
 go 1.23.0
 

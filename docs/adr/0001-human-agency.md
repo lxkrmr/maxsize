@@ -6,7 +6,7 @@
 ## Context
 
 This project uses coding agents (LLMs, AI assistants) to help build and
-maintain `maxsize`. These tools are genuinely useful: they read code, write
+maintain `shrink`. These tools are genuinely useful: they read code, write
 code, spot problems, and execute tasks quickly.
 
 There is a risk, though. A capable tool can start to feel like a collaborator

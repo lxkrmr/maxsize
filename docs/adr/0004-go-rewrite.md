@@ -24,7 +24,7 @@ Rewrite in Go. No config file. Flags only.
   as Go stdlib, no third-party maintainer
 - **CLI parsing:** `flag` from stdlib
 - **Image I/O:** `image/png`, `image/jpeg` from stdlib
-- **Installation:** `go install github.com/<repo>/maxsize@latest`
+- **Installation:** `go install github.com/lxkrmr/shrink@latest`
 - **No config file.** Defaults live in a shell alias.
 
 ## Consequences

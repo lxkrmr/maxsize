@@ -1,4 +1,4 @@
-# maxsize
+# shrink
 
 Resize images in a directory so they fit within a maximum width and height.
 Aspect ratio is always preserved. Files already within the limits are left
@@ -7,32 +7,32 @@ untouched.
 ## Install
 
 ```sh
-go install github.com/lxkrmr/maxsize@latest
+go install github.com/lxkrmr/shrink@latest
 ```
 
-Requires Go. The binary lands in `~/go/bin/maxsize`, which should already be
+Requires Go. The binary lands in `~/go/bin/shrink`, which should already be
 in your `$PATH` if you have used `go install` before.
 
 ## Usage
 
 ```sh
-maxsize --max-width N --max-height N <dir>
+shrink --max-width N --max-height N <dir>
 ```
 
 At least one of `--max-width` or `--max-height` is required. Flags must come before the directory.
 
 ```sh
 # resize everything in ~/Screenshots to fit within 1280×1280
-maxsize --max-width 1280 --max-height 1280 ~/Screenshots
+shrink --max-width 1280 --max-height 1280 ~/Screenshots
 
 # current directory, only constrain width
-maxsize --max-width 1920 .
+shrink --max-width 1920 .
 ```
 
 Shell alias example:
 
 ```sh
-alias shrink='maxsize --max-width 1280 --max-height 1280 ~/Screenshots'
+alias shrink='shrink --max-width 1280 --max-height 1280 ~/Screenshots'
 ```
 
 ## Output
