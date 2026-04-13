@@ -1,5 +1,5 @@
 module github.com/lxkrmr/shrink
 
-go 1.25.0
+go 1.26.2
 
-require golang.org/x/image v0.38.0
+require golang.org/x/image v0.39.0
